@@ -21,13 +21,15 @@ RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . /app
 
-# Create logs directory
-RUN mkdir -p /app/logs
+# Create logs and vector store directories, set ownership
+# note: appuser is created below, so create the user first then set permissions
+RUN useradd --create-home appuser || true \
+    && mkdir -p /app/logs /app/data/chroma \
+    && chown -R appuser:appuser /app/logs /app/data
 
 EXPOSE 8000
 
-# Use a non-root user for security
-RUN useradd --create-home appuser || true
+# Switch to non-root user for security
 USER appuser
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
